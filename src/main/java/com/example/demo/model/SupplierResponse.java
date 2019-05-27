@@ -27,6 +27,7 @@ public class SupplierResponse {
     @Column(name = "quantity")
     private Integer quantity;
 
+    @JsonIgnore
     @Column(name = "per_unit_quantity")
     private Double perUnitQuantity;
 

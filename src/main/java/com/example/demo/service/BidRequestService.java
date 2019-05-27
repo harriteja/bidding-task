@@ -8,10 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,9 +39,7 @@ public class BidRequestService {
                 bidRequest.setExpired(true);
             }
             List<BidRequestItem> bidRequestItems = bidRequestItemService.getByBidRequestId(bidRequest.getId());
-            List<SupplierResponse> supplierResponses = supplierResponseService.getSupplierResponseByBidRequestItem(bidRequestItems.stream().map(BidRequestItem::getId).collect(Collectors.toList()));
-            Map<Long, List<SupplierResponse>> supplierResponseMap = supplierResponses.stream().collect(Collectors.groupingBy(supplierResponse -> supplierResponse.getBidRequestItem().getId()));
-            bidRequestItems.forEach(bidRequestItem -> bidRequestItem.setSupplierResponseList(supplierResponseMap.get(bidRequestItem.getId())));
+            formBidItems(bidRequestItems);
             bidRequest.setBidRequestItemList(bidRequestItems);
         }
         return bidRequest;
@@ -51,32 +47,49 @@ public class BidRequestService {
 
     public void publishBidToBidders(Long bidRequestId) {
         BidRequest bidRequest = bidRequestRepository.getBidRequestById(bidRequestId);
-        //publishing emails to bidders at the start time
+        //publishing bids through emails at start time
     }
 
     public List<BidRequest> getAllActiveBidRequests() {
         Date date = new Date();
-        return bidRequestRepository.getBidRequestByStartDateAfterAndEndDateBefore(date, date);
+        List<BidRequest> bidRequests = bidRequestRepository.getBidRequestByStartDateBeforeAndEndDateAfter(date, date);
+        List<BidRequestItem> bidRequestItems = bidRequestItemService.getBidRequestItemByBidRequestIds(bidRequests.stream().map(BidRequest::getId).collect(Collectors.toList()));
+        Map<Long, List<BidRequestItem>> bidRequestItemMap = bidRequestItems.stream().collect(Collectors.groupingBy(bidRequestItem -> bidRequestItem.getBidRequest().getId()));
+        bidRequests.forEach(bidRequest -> bidRequest.setBidRequestItemList(bidRequestItemMap.get(bidRequest.getId())));
+        return bidRequests;
+
     }
 
     public List<BidRequest> getAllActiveBidRequest(Boolean active, Boolean inactive) {
         List<BidRequest> bidRequests = new ArrayList<>();
         if (active) {
             bidRequests.addAll(getAllActiveBidRequests());
-        }if (inactive) {
-            bidRequests.addAll(bidRequestRepository.getBidRequestByEndDateAfter(new Date()));
+        }
+        if (inactive) {
+            bidRequests.addAll(bidRequestRepository.getBidRequestByEndDateBefore(new Date()));
         }
         List<Long> bidRequestsIds = bidRequests.stream().map(BidRequest::getId).collect(Collectors.toList());
         List<BidRequestItem> bidRequestItems = new ArrayList<>();
         if (!CollectionUtils.isEmpty(bidRequestsIds)) {
             bidRequestItems = bidRequestItemService.getBidRequestItemByBidRequestIds(bidRequestsIds);
+            formBidItems(bidRequestItems);
         }
-        List<SupplierResponse> supplierResponses = supplierResponseService.getSupplierResponseByBidRequestItem(bidRequestItems.stream().map(BidRequestItem::getId).collect(Collectors.toList()));
-        Map<Long, List<SupplierResponse>> supplierResponseMap = supplierResponses.stream().collect(Collectors.groupingBy(supplierResponse -> supplierResponse.getBidRequestItem().getId()));
-        bidRequestItems.forEach(bidRequestItem -> bidRequestItem.setSupplierResponseList(supplierResponseMap.get(bidRequestItem.getId())));
         Map<Long, List<BidRequestItem>> bidRequestItemMap = bidRequestItems.stream().collect(Collectors.groupingBy(bidRequestItem -> bidRequestItem.getBidRequest().getId()));
         bidRequests.forEach(bidRequest -> bidRequest.setBidRequestItemList(bidRequestItemMap.get(bidRequest.getId())));
         return bidRequests;
+    }
+
+    private void formBidItems(List<BidRequestItem> bidRequestItems){
+        List<SupplierResponse> supplierResponses = supplierResponseService.getSupplierResponseByBidRequestItem(bidRequestItems.stream().map(BidRequestItem::getId).collect(Collectors.toList()));
+        Map<Long, List<SupplierResponse>> supplierResponseMap = supplierResponses.stream().collect(Collectors.groupingBy(supplierResponse -> supplierResponse.getBidRequestItem().getId()));
+        supplierResponseMap.forEach((key, value) -> {
+            AtomicInteger i = new AtomicInteger(1);
+            Collections.sort(value.stream().map(SupplierResponse::getPerUnitQuantity).collect(Collectors.toList()));
+            value.forEach(supplierResponse -> {
+                supplierResponse.setRank(i.getAndIncrement());
+            });
+        });
+        bidRequestItems.forEach(bidRequestItem -> bidRequestItem.setSupplierResponseList(supplierResponseMap.get(bidRequestItem.getId())));
     }
 
 

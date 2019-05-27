@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.BidRequest;
 import com.example.demo.service.BidRequestService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ public class BidRequestController {
     @Autowired
     private BidRequestService bidRequestService;
 
+    @ApiOperation(value = "To save the bid request")
     @PostMapping("save")
     public ResponseEntity<Object> saveRequest(@RequestBody BidRequest bidRequest) {
         try {
@@ -23,6 +25,7 @@ public class BidRequestController {
         }
     }
 
+    @ApiOperation(value = "To publish the bid to suppliers by SMS or EMAIL notification")
     @PostMapping("publish")
     public ResponseEntity<Object> publish(@RequestParam Long requestId) {
         try {
@@ -33,6 +36,7 @@ public class BidRequestController {
         }
     }
 
+    @ApiOperation(value = "To know status of bid by bidRequestId")
     @GetMapping("get")
     public ResponseEntity<Object> getBidRequest(@RequestParam Long bidRequestId) {
         try {
@@ -42,6 +46,7 @@ public class BidRequestController {
         }
     }
 
+    @ApiOperation(value = "To get all bids active or inactive")
     @GetMapping("get_all")
     public ResponseEntity<Object> getAllActiveBidRequest(@RequestParam Boolean active, @RequestParam Boolean inactive) {
         return ResponseEntity.ok(bidRequestService.getAllActiveBidRequest(active, inactive));

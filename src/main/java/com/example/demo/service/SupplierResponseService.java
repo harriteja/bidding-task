@@ -33,7 +33,7 @@ public class SupplierResponseService {
 
     public List<SupplierResponse> getResponseByBidItemId(Long bidItemId) {
         List<SupplierResponse> supplierResponses = supplierResponseRepository.getSupplierResponseByBidRequestItemIdOrderByPerUnitQuantityDesc(bidItemId);
-        int i = 0;
+        int i = 1;
         for (SupplierResponse supplierResponse : supplierResponses) {
             supplierResponse.setRank(i++);
         }

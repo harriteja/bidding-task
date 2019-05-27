@@ -10,8 +10,8 @@ public interface BidRequestRepository extends JpaRepository<BidRequest, Long> {
 
     BidRequest getBidRequestById(Long id);
 
-    List<BidRequest> getBidRequestByStartDateAfterAndEndDateBefore(Date startDateAfter, Date endDateBeforedate);
+    List<BidRequest> getBidRequestByStartDateBeforeAndEndDateAfter(Date startDateAfter, Date endDateBeforedate);
 
-    List<BidRequest> getBidRequestByEndDateAfter(Date date);
+    List<BidRequest> getBidRequestByEndDateBefore(Date date);
 
 }
