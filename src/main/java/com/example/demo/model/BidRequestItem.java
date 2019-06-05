@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,6 +35,6 @@ public class BidRequestItem {
     private BidRequest bidRequest;
 
     @Transient
-    private List<SupplierResponse> supplierResponseList;
+    private List<SupplierResponse> supplierResponseList = new ArrayList<>();
 
 }

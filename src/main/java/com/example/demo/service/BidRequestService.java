@@ -50,7 +50,15 @@ public class BidRequestService {
         //publishing bids through emails at start time
     }
 
-    public List<BidRequest> getAllActiveBidRequests() {
+    public List<BidRequest> getAllActiveBidsBySupplierName(String name) {
+        List<BidRequest> bidRequests = getAllActiveBidRequests();
+        bidRequests.forEach(bid -> bid.getBidRequestItemList()
+                .forEach(bidItem -> bidItem.getSupplierResponseList().addAll(
+                        supplierResponseService.getResponseByBidItemId(bidItem.getId()).stream().filter(response -> response.getName().equals(name)).collect(Collectors.toList()))));
+        return bidRequests;
+    }
+
+    private List<BidRequest> getAllActiveBidRequests() {
         Date date = new Date();
         List<BidRequest> bidRequests = bidRequestRepository.getBidRequestByStartDateBeforeAndEndDateAfter(date, date);
         List<BidRequestItem> bidRequestItems = bidRequestItemService.getBidRequestItemByBidRequestIds(bidRequests.stream().map(BidRequest::getId).collect(Collectors.toList()));
@@ -79,7 +87,7 @@ public class BidRequestService {
         return bidRequests;
     }
 
-    private void formBidItems(List<BidRequestItem> bidRequestItems){
+    private void formBidItems(List<BidRequestItem> bidRequestItems) {
         List<SupplierResponse> supplierResponses = supplierResponseService.getSupplierResponseByBidRequestItem(bidRequestItems.stream().map(BidRequestItem::getId).collect(Collectors.toList()));
         Map<Long, List<SupplierResponse>> supplierResponseMap = supplierResponses.stream().collect(Collectors.groupingBy(supplierResponse -> supplierResponse.getBidRequestItem().getId()));
         supplierResponseMap.forEach((key, value) -> {

@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,6 +36,6 @@ public class BidRequest {
     private boolean isExpired = false;
 
     @Transient
-    private List<BidRequestItem> bidRequestItemList;
+    private List<BidRequestItem> bidRequestItemList = new ArrayList<>();
 
 }

@@ -20,8 +20,8 @@ public class SupplierController {
 
     @ApiOperation(value = "To get all Active Bid Requests")
     @GetMapping("get_all")
-    public ResponseEntity<Object> getAllBids() {
-        return ResponseEntity.ok(bidRequestService.getAllActiveBidRequests());
+    public ResponseEntity<Object> getAllBids(String name) {
+        return ResponseEntity.ok(bidRequestService.getAllActiveBidsBySupplierName(name));
     }
 
     @ApiOperation(value = "To place a bid for item")

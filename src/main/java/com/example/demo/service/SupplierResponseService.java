@@ -19,6 +19,7 @@ public class SupplierResponseService {
     private SupplierResponseRepository supplierResponseRepository;
 
     public void saveBid(SupplierResponse supplierResponse) {
+        supplierResponse.setName(supplierResponse.getName().toLowerCase());
         Optional<SupplierResponse> existingSupplierResponse = supplierResponseRepository.getSupplierResponseByNameAndBidRequestItemId(supplierResponse.getName(), supplierResponse.getBidItemId());
         BidRequestItem bidRequestItem = bidRequestItemService.getBidItemRequestByBidRequestItemId(supplierResponse.getBidItemId());
         if (bidRequestItem != null) {
